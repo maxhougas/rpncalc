@@ -1,0 +1,51 @@
+=========
+Switches:
+--help, -h
+ Disply this help.
+--verbose, -v
+ Enable verbosity
+
+Commands:
+###: push ### onto stack
+  e: push Euler's number
+  t: push tau=2pi
+  +: addition
+  -: subtraction
+  *: multiplication
+  /: floating point division
+  ^: power
+exp: exponent function
+ ln: logorithm
+  d: push tau/360
+ d*: convert deg to rad
+ d/: convert rad to deg
+cos: cosine
+aco: arccosine
+sin: sine
+asi: arcsine
+tan: tangent
+ata: arctangent
+at2: 2 input arctangent
+coh: hyperbolic cosine
+ach: hyperbolic arccosine
+sih: hyperbolic sine
+ash: hyperbolic arcsine
+tah: hyperbolic tangent
+ath: hyperbolic arctangent
+abs: absolute value
+hyp: hypotenuse fuction
+cei: ceiling
+flo: floor
+  \: integer division
+  %: remainder
+clr: clear stack
+len: current length of stack
+pek: peek at top stack value
+pop: pop top stack value
+swp: swap top to stack items
+chm: identify mem value
+pem: copy top of stack to mem
+pom: move top of stack to mem
+pum: copy mem to top of stack
+  q: quit calculator
+=========
