@@ -706,7 +706,7 @@ int get_tokens(stack* numstack, double* mem, int verbose)
     {
      printf("%3s:", tokens[i]);
      if(stack_get_empty(numstack))
-      printf("% f\n", stack_peek(numstack));
+      printf("%f\n", stack_peek(numstack));
      else if(err==NOERRORS || err==QUITFLAG)
       printf("NULL\n");
     }
