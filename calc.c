@@ -36,6 +36,40 @@
 #define NUMMATCH2(a) ((a[0]==43 || a[0]==45 || a[0]==46) && (47<a[1] && a[1]<58)) /*+, -, ., 0-9*/
 #define NUMMATCH3(a) ((a[0]==43 || a[0]==45) && a[1]==46 && (47<a[2] && a[2]<58)) /*+, -, ., 0-9*/
 
+#define ISNUM(a) (NUMMATCH1(a) || NUMMATCH2(a) || NUMMATCH3(a))
+
+#define HASH(op,l) ((l>0?op[0]:0) + (l>1?256*op[1]:0) + (l>2?256*256*op[2]:0))
+
+#define LN 28268
+#define EXP 7370853
+#define COS 7565155
+#define ACO 7299937
+#define SIN 7235955
+#define ASI 6910817
+#define TAN 7233908
+#define ATA 6386785
+#define AT2 3306593
+#define COH 6844259
+#define ACH 6841185
+#define SIH 6842739
+#define ASH 6845281
+#define TAH 6840692
+#define ATH 6845537
+#define ABS 7561825
+#define HYP 7371112
+#define CEI 6907235
+#define FLO 7302246
+#define CLR 7498851
+#define LEN 7234924
+#define PEK 7038320
+#define POP 7368560
+#define SWP 7370611
+#define CHM 7170147
+#define PEM 7169392
+#define POM 7171952
+#define PUM 7173488
+#define QUI 6911345
+
 #define TOKISCHM (!strcmp(tokens[i],"chm"))
 #define TOKISPEK (!strcmp(tokens[i],"pek"))
 
@@ -108,557 +142,509 @@ int stack_kill(stack* this)
  return NOERRORS;
 }
 
-double stack_peek(stack* this)
+double stack_peek(stack* this, double* out)
 {
- double ret;
  if(!this->p)
  {
   printf("Error empty stack\n");
-  ret = NAN;
+
+  return NAN;
  }
  else
  {
-  ret = this->data[this->p-1];
+  *out = this->data[this->p-1];
+
+  return NOERRORS;
  }
- return ret;
 }
 
-double stack_pop(stack* this)
+int stack_pop(stack* this, double* out)
 {
- double ret;
  if(!this->p)
  {
   printf("Error empty stack\n");
-  ret == NAN;
+
+  return NAN;
  }
  else
  {
   this->p--;
-  ret = this->data[this->p];
+  *out = this->data[this->p];
+
+  return NOERRORS;
  }
- return ret;
 }
 
-double stack_push(stack* this, double data)
+int stack_push(stack* this, double data)
 {
- double ret;
  if(this->p==this->max)
  {
   printf("Error full stack\n");
-  ret = NAN;
+
+  return FULLSTACK;
  }
  else
  {
   this->data[this->p] = data;
   this->p++;
-  ret = data;
+  
+  return NOERRORS;
  }
- return ret;
 }
 
 int stack_swap(stack* this) /*swap top two on this*/
 {
- int ret;
- if(this==NULL | this->data==NULL)
-  ret = UNSPECIFIED;
+ if(this==NULL || this->data==NULL)
+  return UNSPECIFIED;
  else if(this->p<2)
-  ret = EMPTYSTACK;
+  return EMPTYSTACK;
  else
  {
   double tmp = this->data[this->p-1];
   this->data[this->p-1] = this->data[this->p-2];
   this->data[this->p-2] = tmp;
 
-  ret = NOERRORS;
+  return NOERRORS;
  }
- return ret;
 }
 
 int stack_view(stack* this, int direction) /*use BOTTOM_UP and TOP_DOWN*/
 {
- unsigned int i;
- double ret;
+ int i;
+
  if(direction == BOTTOM_UP)
  {
   for(i=0;i<this->p;i++)
    printf("% f\n",this->data[i]);
-  ret = NOERRORS;
+  return NOERRORS;
  }
  else if(direction == TOP_DOWN)
  {
   for(i=this->p-1;i<-1;i--)
    printf("% f\n",this->data[i]);
-  ret = NOERRORS;
+  return NOERRORS;
  }
  else
-  ret = UNSPECIFIED;
- return ret;
+  return UNSPECIFIED;
 }
 
 int execute_op(stack* numstack, double* mem, char* op)
 {
- int ret;
 
- if(!strcmp(op, "e"))
+ switch(HASH(op,strlen(op)))
  {
-  if(stack_get_full(numstack))
-   ret = FULLSTACK;
-  else
-  {
-   stack_push(numstack, M_E);
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "t")) /*tau = 2*pi*/
- {
-  if(stack_get_full(numstack))
-   ret = FULLSTACK;
-  else
-  {
-   stack_push(numstack, TAU);
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "+"))
- {
-  if(stack_get_empty(numstack)<2)
-   ret = EMPTYSTACK;
-  else
-  {
-   double b = stack_pop(numstack);
-   double a = stack_pop(numstack);
 
-   stack_push(numstack, a+b);
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "-"))
- {
-  if(stack_get_empty(numstack)<2)
-   ret = EMPTYSTACK;
-  else
-  {
-   double b = stack_pop(numstack);
-   double a = stack_pop(numstack);
+  case 'q':
+   printf("Quitting\n");
+   return QUITFLAG;
+  break;
 
-   stack_push(numstack, a-b);
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "*"))
- {
-  if(stack_get_empty(numstack)<2)
-   ret = EMPTYSTACK;
-  else
-  {
-   double b = stack_pop(numstack);
-   double a = stack_pop(numstack);
+  case 'e':
+   if(stack_get_full(numstack))
+    return FULLSTACK;
+   else
+    stack_push(numstack, M_E);
+  break;
 
-   stack_push(numstack, a*b);
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "/"))
- {
-  if(stack_get_empty(numstack)<2)
-   ret = EMPTYSTACK;
-  else
-  {
-   double b = stack_pop(numstack);
-   double a = stack_pop(numstack);
+  case 't':
+   if(stack_get_full(numstack))
+    return FULLSTACK;
+   else
+    stack_push(numstack, TAU);
+  break;
 
-   stack_push(numstack, a/b);
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "^"))
- {
-  if(stack_get_empty(numstack)<2)
-   ret = EMPTYSTACK;
-  else
-  {
-   double b = stack_pop(numstack);
-   double a = stack_pop(numstack);
+  case 'd':
+   if(stack_get_full(numstack))
+    return FULLSTACK;
+   else
+    stack_push(numstack, DEE);
+  break;
 
-   stack_push(numstack, pow(a,b));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "exp"))
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case '+':
+   if(stack_get_empty(numstack)<2)
+    return EMPTYSTACK;
+   else
+   {
+    double a,b;
+    stack_pop(numstack,&b);
+    stack_pop(numstack,&a);
+    stack_push(numstack, a+b);
+   }
+  break;
 
-   stack_push(numstack, exp(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "ln"))
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case '-':
+   if(stack_get_empty(numstack)<2)
+    return EMPTYSTACK;
+   else
+   {
+    double a,b;
+    stack_pop(numstack,&b);
+    stack_pop(numstack,&a);
+    stack_push(numstack, a-b);
+   }
+  break;
 
-   stack_push(numstack, log(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "d"))
- {
-  if(stack_get_full(numstack))
-   ret = FULLSTACK;
-  else
-  {
-   stack_push(numstack, DEE);
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "d*"))
- {
-  double a = stack_pop(numstack);
 
-  stack_push(numstack, a*DEE);
-  ret = NOERRORS;
- }
- else if(!strcmp(op, "d/"))
- {
-  double a = stack_pop(numstack);
+  case '*':
+   if(stack_get_empty(numstack)<2)
+    return EMPTYSTACK;
+   else
+   {
+    double a,b;
+    stack_pop(numstack,&b);
+    stack_pop(numstack,&a);
+    stack_push(numstack, a*b);
+   }
+  break;
 
-  stack_push(numstack, a/DEE);
-  ret = NOERRORS;
- }
- else if(!strcmp(op, "cos"))
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case '/':
+   if(stack_get_empty(numstack)<2)
+    return EMPTYSTACK;
+   else
+   {
+    double a,b;
+    stack_pop(numstack,&b);
+    stack_pop(numstack,&a);
+    stack_push(numstack, a/b);
+   }
+  break;
 
-   stack_push(numstack, cos(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "aco")) /*arccosine*/
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case '^':
+   if(stack_get_empty(numstack)<2)
+    return EMPTYSTACK;
+   else
+   {
+    double a,b;
+    stack_pop(numstack,&a);
+    stack_pop(numstack,&b);
+    stack_push(numstack,pow(a,b));
+   }
+  break;
 
-   stack_push(numstack, acos(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "sin"))
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case '\\':
+   if(stack_get_empty(numstack)<2)
+    return EMPTYSTACK;
+   else
+   {
+    double a,b;
+    stack_pop(numstack,&a);
+    stack_pop(numstack,&b);
+    stack_push(numstack,floor(a/b));
+   }
+  break;
 
-   stack_push(numstack, sin(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "asi")) /*arcsine*/
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case '%':
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a,b;
+    stack_pop(numstack,&a);
+    stack_pop(numstack,&b);
+    stack_push(numstack,fmod(a,b));
+   }
+  break;
 
-   stack_push(numstack, asin(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "tan"))
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case LN:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,log(a));
+   }
+  break;
 
-   stack_push(numstack, tan(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "ata")) /*arctangent*/
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case EXP:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,exp(a));
+   }
+  break;
 
-   stack_push(numstack, atan(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "at2")) /*2 input arctanget*/
- {
-  if(stack_get_empty(numstack)<2)
-   ret = EMPTYSTACK;
-  else
-  {
-   double b = stack_pop(numstack);
-   double a = stack_pop(numstack);
+  case COS:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,cos(a));
+   }
+  break;
 
-   stack_push(numstack, atan2(a, b));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "coh")) /*hyperbolic cosine*/
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case ACO:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,acos(a));
+   }
+  break;
 
-   stack_push(numstack, cosh(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "ach")) /*hyperbolic arccosine*/
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case SIN:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,sin(a));
+   }
+  break;
 
-   stack_push(numstack, acosh(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "sih")) /*hyperbolic sine*/
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case ASI:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,sin(a));
+   }
+  break;
 
-   stack_push(numstack, sinh(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "ash")) /*hyperbolic arcsine*/
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case TAN:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,tan(a));
+   }
+  break;
 
-   stack_push(numstack, asinh(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "tah")) /*hyperbolic tangent*/
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case ATA:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,atan(a));
+   }
+  break;
 
-   stack_push(numstack, tanh(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "ath")) /*hyperbolic arctangent*/
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case AT2:
+   if(stack_get_empty(numstack)<2)
+    return EMPTYSTACK;
+   else
+   {
+    double a,b;
+    stack_pop(numstack,&b);
+    stack_pop(numstack,&a);
+    stack_push(numstack,atan2(a,b));
+   }
+  break;
 
-   stack_push(numstack, atanh(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "abs"))
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case COH:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,cosh(a));
+   }
+  break;
 
-   stack_push(numstack, fabs(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "hyp"))
- {
-  if(stack_get_empty(numstack)<2)
-   ret = EMPTYSTACK;
-  else
-  {
-   double b = stack_pop(numstack);
-   double a = stack_pop(numstack);
+/* inverse hyperbolic functions not ANSI compliant
+  case ACH:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,acosh(a));
+   }
+  break;
+*/
 
-   stack_push(numstack, hypot(a, b));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "cei"))
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case SIH:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,sinh(a));
+   }
+  break;
 
-   stack_push(numstack, ceil(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "flo"))
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+/*
+  case ASH:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,asinh(a));
+   }
+  break;
+*/
 
-   stack_push(numstack, floor(a));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "\\"))
- {
-  if(stack_get_empty(numstack)<2)
-   ret = EMPTYSTACK;
-  else
-  {
-   double b = stack_pop(numstack);
-   double a = stack_pop(numstack);
+  case TAH:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,tanh(a));
+   }
+  break;
 
-   stack_push(numstack, floor(a/b));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "%"))
- {
-  if(stack_get_empty(numstack)<2)
-   ret = EMPTYSTACK;
-  else
-  {
-   double b = stack_pop(numstack);
-   double a = stack_pop(numstack);
+/*
+  case ATH:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,atanh(a));
+   }
+  break;
+*/
 
-   stack_push(numstack, fmod(a, b));
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "clr"))
- {
-  stack_clear(numstack);
-  ret = NOERRORS;
- }
- else if(!strcmp(op, "len")) /*returns the current size of the stack*/
- {
-  double a = (double)stack_get_empty(numstack);
+  case ABS:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,fabs(a));
+   }
+  break;
 
-  stack_push(numstack, a);
-  ret = NOERRORS;
- }
- else if(!strcmp(op, "pek"))
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_peek(numstack);
+/*
+  case HYP:
+   if(stack_get_empty(numstack)<2)
+    return EMPTYSTACK;
+   else
+   {
+    double a,b;
+    stack_pop(numstack,&a);
+    stack_pop(numstack,&b);
+    stack_push(numstack,hypot(a,b));
+   }
+  break;
+*/
 
-   printf("Peeking %f\n", a);
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "pop"))
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   double a = stack_pop(numstack);
+  case CEI:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,ceil(a));
+   }
+  break;
 
-   ret = NOERRORS;
-  }
+  case FLO:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    stack_push(numstack,floor(a));
+   }
+  break;
+
+  case CLR:
+   stack_clear(numstack);
+  break;
+
+  case LEN:
+   stack_push(numstack,stack_get_empty(numstack));
+  break;
+
+  case PEK:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_peek(numstack,&a);
+    printf("Peeking %f\n",a);
+   }
+  break;
+
+  case POP:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+    numstack->p--;
+  break;
+
+  case SWP:
+   if(stack_get_empty(numstack)<2)
+    return EMPTYSTACK;
+   else
+    stack_swap(numstack);
+  break;
+
+  case CHM:
+   printf("Memory %f\n", *mem);
+  break;
+
+  case PEM:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_peek(numstack,&a);
+    *mem = a;
+   }
+  break;
+
+  case POM:
+   if(!stack_get_empty(numstack))
+    return EMPTYSTACK;
+   else
+   {
+    double a;
+    stack_pop(numstack,&a);
+    *mem = a;
+   }
+  break;
+
+  case PUM:
+   if(stack_get_full(numstack))
+    return FULLSTACK;
+   else
+    stack_push(numstack,*mem);
+  break;
+
+  case QUI:
+   printf("Quitting\n");
+   return QUITFLAG;
+  break;
+
+  default:
+   return BADTOKEN;
  }
- else if(!strcmp(op, "swp"))
- {
-  if(stack_get_empty(numstack)<2)
-   ret = EMPTYSTACK;
-  else
-  {
-   stack_swap(numstack);
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "chm"))
- {
-  printf("Memory %f\n", *mem);
- }
- else if(!strcmp(op, "pem"))
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   *mem = stack_peek(numstack);
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "pom"))
- {
-  if(stack_get_empty(numstack)<1)
-   ret = EMPTYSTACK;
-  else
-  {
-   *mem = stack_pop(numstack);
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "pum"))
- {
-  if(stack_get_full(numstack))
-   ret = FULLSTACK;
-  else
-  {
-   stack_push(numstack, *mem);
-   ret = NOERRORS;
-  }
- }
- else if(!strcmp(op, "q"))
- {
-  printf("Quitting\n");
-  ret = QUITFLAG;
- }
- else
-  ret = BADTOKEN;
- return ret;
+
+ return NOERRORS;
 }
 
 int is_number(char* num)
 {
- if(NUMMATCH1(num) || NUMMATCH2(num) || NUMMATCH3(num))
-  return 1;
- else
-  return 0;
+ return (NUMMATCH1(num) || NUMMATCH2(num) || NUMMATCH3(num));
 }
 
 int get_tokens(stack* numstack, double* mem, int verbose)
@@ -670,30 +656,37 @@ int get_tokens(stack* numstack, double* mem, int verbose)
   ret = QUITFLAG;
  else
  {
-  char* p;
+  /*char* p = NULL;*/
   int i;
   char* tokens[LINE_LENGTH];
 
   ret = NOERRORS;
   if(verbose)
-   printf(" %s", buffer);
+   printf("%s\n", buffer);
 
-  tokens[0] = strtok_r(buffer, WHITE, &p);
+  tokens[0] = strtok(buffer, WHITE);
   for(i = 1; (i<LINE_LENGTH) && (tokens[i-1]!=NULL); i++)
   {
-   tokens[i] = strtok_r(NULL, WHITE, &p);
+   tokens[i] = strtok(NULL, WHITE);
+   /*printf(" %s",tokens[i-1]);*/
   }
+  /*printf("\n");*/
 
   for(i = 0; tokens[i]!=NULL; i++)
   {
    if(is_number(tokens[i]))
    {
-    double tmp;
-    tmp = stack_push(numstack, atof(tokens[i]));
-    if(tmp==NAN)
-     printf("\nFull stack");
+    int err;
+
+    err = stack_push(numstack, atof(tokens[i]));
+    if(err==FULLSTACK)
+     printf("Full stack\n");
     if(verbose)
-     printf("%f ", stack_peek(numstack));
+    {
+     double a;
+     stack_peek(numstack,&a);
+     printf("%f\n",a);
+    }
    }
    else
    {
@@ -706,7 +699,11 @@ int get_tokens(stack* numstack, double* mem, int verbose)
     {
      printf("%3s:", tokens[i]);
      if(stack_get_empty(numstack))
-      printf("%f\n", stack_peek(numstack));
+     {
+      double a;
+      stack_peek(numstack,&a);
+      printf("%f\n",a);
+     }
      else if(err==NOERRORS || err==QUITFLAG)
       printf("NULL\n");
     }
@@ -723,10 +720,15 @@ int get_tokens(stack* numstack, double* mem, int verbose)
   if(0<i && verbose && is_number(tokens[i-1]))
    printf("\n");
   if(!verbose && stack_get_empty(numstack)) /*if not verbose print result of each line*/
-   printf("End of line yields %f\n", stack_peek(numstack));
+  {
+   double a;
+   stack_peek(numstack,&a);
+   printf("End of line yields %f\n",a);
+  }
   else if(!verbose && !stack_get_empty(numstack))
    printf("End of line yields empty stack\n");
  }
+
  return ret;
 }
 

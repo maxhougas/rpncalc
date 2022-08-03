@@ -25,7 +25,7 @@ sin: sine
 asi: arcsine
 tan: tangent
 ata: arctangent
-at2: 2 input arctangent
+at2: two input arctangent
 coh: hyperbolic cosine
 ach: hyperbolic arccosine
 sih: hyperbolic sine
@@ -42,10 +42,18 @@ clr: clear stack
 len: current length of stack
 pek: peek at top stack value
 pop: pop top stack value
-swp: swap top to stack items
+swp: swap top two stack items
 chm: identify mem value
 pem: copy top of stack to mem
 pom: move top of stack to mem
 pum: copy mem to top of stack
   q: quit calculator
 =========
+
+Errata:
+2022 AUG 03
+ ANSI compliance enforced
+ d* and d/ not supported
+ Quit can also be qui
+ Inverse hyperbolic functions not supported
+ Hypotenuse function not supported
